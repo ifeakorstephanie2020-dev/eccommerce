@@ -8,14 +8,6 @@ $sql = "SELECT * FROM products WHERE id=$id";
 $results = mysqli_query($conn, $sql);
 $row = mysqli_fetch_assoc($results);
 
-// include "config.php";
-
-// $id = $_GET["id"];
-
-// $sql = "SELECT * FROM products WHERE id=$id";
-// $results = mysqli_query($conn, $sql);
-// $row = mysqli_fetch_assoc($results);
-
 if(isset($_POST['order'])){
     $email = $_POST["email"];
     $sql = "INSERT INTO orders (email,id2) VALUES ('$email', '$id')";
@@ -30,83 +22,65 @@ if(isset($_POST['order'])){
 
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>STEPHIE'S STORE - Order</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
-<style>
-    .logo-icon {
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        border-radius: 4px;
-    }
-</style>
-<link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.pink.min.css">
-
 <body>
-    <nav style="padding: 20px;">
-        <div>
-            <div class="logo-icon">
-                <button style="padding: 3px; height: 50px; width: 50px;"><h1>S</h1></button>
-                <pre style="background:rgb(19, 22.5, 30.5);">   </pre>
-                <span style="text-transform: capitalize; font-weight:lighter; font-size:larger;"> place order</span>
-            </div>
-
-        </div >
-        <a href="index.php"><button  style="padding: 5px;background: #f7708e;">order more</button></a>
+    <nav style="padding: 20px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-nav); border-bottom: 3px double var(--border-color);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <button style="padding: 3px; height: 50px; width: 50px; font-size: 2rem; font-family: var(--font-heading); background: var(--bg-main); border: 2px solid var(--primary-dark); color: var(--primary-dark);">S</button>
+            <span style="text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem;">Place Order</span>
+        </div>
+        <a href="index.php"><button style="padding: var(--spacing-sm) var(--spacing-lg); background: var(--primary-dark); color: var(--text-white); border: none;">Order More</button></a>
     </nav>
-    <div class="grid" style="display: flex; align-items: center;">
-        <article style="height: 100%; color:#f7708e; width: 500px; margin: 30px; margin-top:50px;  ">
+
+    <div class="container" style="display: flex; flex-wrap: wrap; gap: var(--spacing-xl); padding: var(--spacing-xl) 0; justify-content: center;">
+        <article style="flex: 1; min-width: 280px; max-width: 500px; height: fit-content;">
             <h2>Order Summary</h2>
-            <div style="display: flex; align-items: center; gap:20px;">
-                <img height="80px" width="120px" src="https://thf.bing.com/th/id/OIP.wOX2I1M53b7Ta9AEDtBXQAHaHa?w=186&h=186&c=7&r=0&o=7&cb=thfc1falcon4&dpr=1.3&pid=1.7&rm=3" /><br>
-                <figure>
-                    <?php echo $row["name"] ?> <br>
-                    <?php echo $row["description"] ?> <br>
-                    $ <?php echo $row["price"] ?> <br>
-                </figure>
+            <div style="display: flex; align-items: center; gap: var(--spacing-lg);">
+                <img height="80px" width="120px" src="https://picsum.photos/200/200" alt="<?php echo $row["name"]; ?>" style="border: 2px solid var(--border-color); filter: sepia(0.3);" />
+                <div>
+                    <strong style="color: var(--primary-dark); font-family: var(--font-heading); font-size: 1.2rem;"><?php echo $row["name"]; ?></strong><br>
+                    <?php echo $row["description"]; ?><br>
+                    <span style="font-size: 1.3rem; color: var(--primary-dark);">$<?php echo $row["price"]; ?></span>
+                </div>
             </div>
-            <br> <br>
-            <article style="background-color:rgb(19, 22.5, 30.5);">
+            <br>
+            <article style="background: var(--bg-dark); border: 1px solid var(--border-color); padding: var(--spacing-lg); margin-top: var(--spacing-md);">
                 <h3>Order Process:</h3>
-                <ol style="color:#f7708e;">
+                <ol style="padding-left: var(--spacing-lg); color: var(--text-secondary);">
                     <li>Enter your email address</li>
-                    <li>Click "Place Order" </li>
+                    <li>Click "Place Order"</li>
                     <li>Check your email for confirmation</li>
                     <li>No payment required (demo system)</li>
                 </ol>
             </article>
         </article>
 
-        <article style="width: 500px; outline: 1px solid pink; margin: auto; margin-right: 10px; ">
+        <article style="flex: 1; min-width: 280px; max-width: 500px; height: fit-content;">
             <h2>Complete Order</h2>
-            <h6>Your Email Address</h6>
             <form method="post">
-                <input type="email" name="email" id="" placeholder="you@example.com">
-            <small>we'll send the product name to this email</small>
-
-            <center>
-                <button style="width: 80%;" name="order">Place Order</button><br>
-
-                <a href="">Back to store</a>
-
-            </center>
+                <label>Your Email Address</label>
+                <input type="email" name="email" placeholder="you@example.com" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <small style="color: var(--text-light);">We'll send the product name to this email</small>
+                <br><br>
+                <center>
+                    <button type="submit" name="order" style="width: 100%;">Place Order</button><br><br>
+                    <a href="index.php" style="color: var(--text-secondary);">Back to store</a>
+                </center>
+                <?php if(isset($message)) echo "<p style='color: var(--primary-dark); text-align: center; margin-top: var(--spacing-md);'>$message</p>"; ?>
             </form>
-
         </article>
-
     </div>
+
+    <script src="script.js"></script>
 </body>
 
 </html>

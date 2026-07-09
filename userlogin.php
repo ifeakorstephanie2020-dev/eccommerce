@@ -45,84 +45,59 @@ if (isset($_POST["LOGIN"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>STEPHIE'S STORE - Login</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<style>
-    hr {
-        border-top: 2px solid white;
-    }
-
-    button {
-        background-color: rgb(19, 22.5, 30.5) !important;
-    }
-</style>
-<link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.pink.min.css">
 
 <body>
-    <div style="padding: 10%;">
-        <article id="signup" style="margin: auto; padding: 20px; width: 70%; margin-top: 50px; box-shadow: -5px 0px 0px 5px #f7708e ;">
-            <div class="grid">
-                <button onclick="login()">
-                    <h1>LOGIN</h1>
-                </button>
-                <button onclick="signup()">
-                    <h1>Sign Up</h1>
-                </button>
+    <div class="container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+        <article id="signup" style="width: 100%; max-width: 500px; padding: var(--spacing-xl);">
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+                <button onclick="login()" style="width: 100%;">LOGIN</button>
+                <button onclick="signup()" style="width: 100%;">Sign Up</button>
             </div>
-            <hr>
+            <hr style="border: 1px solid var(--border-color); margin: var(--spacing-md) 0;">
             <form action="">
-                <label for="">USERNAME</label>
-                <input type="text" name="username" placeholder="ENTER EMAIL">
-                <label for="">PASSWORD</label>
-                <input type="password" name="password" id="" placeholder="ENTER PASSWORD">
-                <label for="">CONFIRM PASSWORD</label>
-                <input type="text" name="PASSWORD" placeholder="ENTER PASSWORD">
-                <button name="sign">Sign up</button>
+                <label>USERNAME</label>
+                <input type="text" name="username" placeholder="ENTER EMAIL" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <label>PASSWORD</label>
+                <input type="password" name="password" placeholder="ENTER PASSWORD" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <label>CONFIRM PASSWORD</label>
+                <input type="text" name="PASSWORD" placeholder="ENTER PASSWORD" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <button name="sign" style="width: 100%;">Sign up</button>
+                <?php echo $message; ?>
             </form>
-
         </article>
 
-        <article id="login" style="display: none;margin: auto; padding: 20px; width: 70%; margin-top: 50px; box-shadow: -5px 0px 0px 5px #f7708e ;">
-            <div class="grid">
-                <button onclick="login()">
-                    <h1>LOGIN</h1>
-                </button>
-                <button onclick="signup()">
-                    <h1>Sign Up</h1>
-                </button>
+        <article id="login" style="display: none; width: 100%; max-width: 500px; padding: var(--spacing-xl);">
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+                <button onclick="login()" style="width: 100%;">LOGIN</button>
+                <button onclick="signup()" style="width: 100%;">Sign Up</button>
             </div>
-
-            <hr>
-
+            <hr style="border: 1px solid var(--border-color); margin: var(--spacing-md) 0;">
             <form method="post">
                 <?php echo $message; ?>
                 <label>USERNAME</label>
-                <input type="text" name="username" placeholder="enter username">
-                <Label>PASSWORD</Label>
-                <input type="password" name="password" id="" placeholder="enter password">
-                <button name="LOGIN" type="submit">LOGIN</button>
+                <input type="text" name="username" placeholder="enter username" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <label>PASSWORD</label>
+                <input type="password" name="password" placeholder="enter password" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <button name="LOGIN" type="submit" style="width: 100%;">LOGIN</button>
             </form>
-
         </article>
-    </div>
-
-    <div>
-
     </div>
 
     <script>
         function signup() {
-            document.getElementById("signup").style = "display: block; margin: auto; padding: 20px; width: 70%; margin-top: 50px; box-shadow: -5px 0px 0px 5px #f7708e ;;"
-            document.getElementById("login").style = "display: none;"
+            document.getElementById("signup").style.display = "block";
+            document.getElementById("login").style.display = "none";
         }
 
         function login() {
-            document.getElementById("login").style = "display: block; margin: auto; padding: 20px; width: 70%; margin-top: 50px; box-shadow: -5px 0px 0px 5px #f7708e ;;"
-            document.getElementById("signup").style = "display: none;"
+            document.getElementById("login").style.display = "block";
+            document.getElementById("signup").style.display = "none";
         }
     </script>
+    <script src="script.js"></script>
 </body>
 
 </html>
