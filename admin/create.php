@@ -11,9 +11,9 @@ if (isset($_POST['order'])) {
     $sql = "INSERT INTO products (name, description, price) VALUES ('$name','$description',$price)";
 
     if ($conn->query($sql) === TRUE) {
-        $message = "product added successfully";
+        $message = "✨ Product added successfully!";
     } else {
-        $message = "error:" . $conn->error;
+        $message = "❌ Error:" . $conn->error;
     }
 }
 
@@ -28,46 +28,64 @@ if ($_SESSION["islogged"] != TRUE){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STEPHIES'S STORE</title>
+    <title>STEPHIE'S ADMIN - Create</title>
+    <link rel="stylesheet" href="admin-styles.css">
 </head>
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.pink.min.css"
->
 
 <body>
-
     <header class="container">
         <nav>
             <ul>
-        <li style="color:#f7708e;"><h2 style="color:#f7708e;"><h1 style="display: inline; color:#f7708e;" >S</h1>TEPHIE'S ADMIN</h2></li>
-      </ul>
+                <li class="brand">
+                    <span>S</span>TEPHIE'S ADMIN
+                    <span class="admin-badge">✨ Admin</span>
+                </li>
+            </ul>
             <ul>
-                <li><a href="../index.php" class="contrast" style="color:#f7708e;">View Store</a></li>
-                <li><a href="edit.php" class="contrast" style="color:#f7708e;">Edit Products</a></li>
-                <li><a href="delete.php" class="contrast" style="color:#f7708e;">Remove Products</a></li>
+                <li><a href="admin_store.php">View Store</a></li>
+                <li><a href="order.php">📦 Orders</a></li>
+                <li><a href="edit.php">Edit Products</a></li>
+                <li><a href="delete.php">Remove Products</a></li>
             </ul>
         </nav>
     </header>
-    <center>
-        <h1>Welcome <?php echo $_SESSION["name"]; ?></h1>
-    </center>
-    <article style=" margin: 40px; outline:#f7708e 1px solid;">
-        <form method="POST" >
-        <fieldset style="padding: 20px;">
-            <label>Name:</label>
-            <input type="text" name="name" required>
 
-            <label>description:</label>
-            <input type="text" name="description" required>
+    <div class="container">
+        <center>
+            <h1 style="font-size: 1.8rem; letter-spacing: 4px;">
+                Welcome <span style="color: var(--primary-dark);"><?php echo $_SESSION["name"]; ?></span>
+            </h1>
+            <div style="width: 80px; height: 2px; background: var(--border-color); margin: var(--spacing-sm) auto var(--spacing-lg);"></div>
+        </center>
 
-            <label>price:</label>
-            <input type="number" name="price" required>
-        </fieldset>
+        <?php if($message): ?>
+            <div class="message"><?php echo $message; ?></div>
+        <?php endif; ?>
 
-        <button type="submit" name="order">➕ Add product </button>
-    </form>
-    </article>
+        <article style="max-width: 600px; margin: 0 auto;">
+            <h2 style="text-align: center; color: var(--primary-dark);">➕ Add New Product</h2>
+            <form method="POST">
+                <fieldset>
+                    <legend>Product Details</legend>
+
+                    <label>Product Name:</label>
+                    <input type="text" name="name" required placeholder="e.g., Lipstick">
+
+                    <label>Description:</label>
+                    <input type="text" name="description" required placeholder="e.g., Long-lasting matte">
+
+                    <label>Price ($):</label>
+                    <input type="number" name="price" required placeholder="e.g., 15.99" step="0.01">
+                </fieldset>
+
+                <button type="submit" name="order" style="width: 100%; margin-top: var(--spacing-md);">
+                    ➕ Add Product
+                </button>
+            </form>
+        </article>
+    </div>
+
+    <script src="admin-script.js"></script>
 </body>
 
 </html>

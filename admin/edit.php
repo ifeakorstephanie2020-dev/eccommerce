@@ -21,10 +21,10 @@ if (isset(($_POST['order']))) {
     $sql = "UPDATE products SET name = '$name',description='$description',price ='$price' WHERE id=$id";
 
     if ($conn->query($sql) === TRUE) {
-        $message = "product updated successfully!";
+        $message = "✏️ Product updated successfully!";
         $editproducts = null;
     } else {
-        $message = "error:" . $conn->error;
+        $message = "❌ Error:" . $conn->error;
     }
 }
 
@@ -38,92 +38,107 @@ $result = $conn->query($sql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STEPHIE'S STORE</title>
+    <title>STEPHIE'S ADMIN - Edit</title>
+    <link rel="stylesheet" href="admin-styles.css">
 </head>
-<link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
 
 <body>
-
     <header class="container">
         <nav>
             <ul>
-                <li style="color:#f7708e;">
-                    <h2 style="color:#f7708e;">
-                        <h1 style="display: inline; color:#f7708e;">S</h1>TEPHIE'S ADMIN
-                    </h2>
+                <li class="brand">
+                    <span>S</span>TEPHIE'S ADMIN
+                    <span class="admin-badge">✏️ Edit</span>
                 </li>
             </ul>
             <ul>
-                <li><a href="../index.php" class="contrast" style="color:#f7708e;">View Store</a></li>
-                <li><a href="edit.php" class="contrast" style="color:#f7708e;">Edit Products</a></li>
-                <li><a href="delete.php" class="contrast" style="color:#f7708e;">Remove Products</a></li>
+                <li><a href="admin_store.php">View Store</a></li>
+                <li><a href="create.php">Add Products</a></li>
+                <li><a href="order.php">📦 Orders</a></li>
+                <li><a href="delete.php">Remove Products</a></li>
             </ul>
         </nav>
     </header>
 
-    <center>
-        <h1>Welcome <?php echo $_SESSION["name"]; ?></h1>
-    </center>
-    <?php if ($message): ?>
-        <div class="message"><?php echo $message; ?></div>
-    <?php endif; ?>
-
     <div class="container">
-        <!-- LEFT: List of users -->
-        <div class="product list">
-            <h3 > 📋 Select product to edit:</h3>
-            <?php if ($result->num_rows > 0): ?>
-                <table>
-                    <tr>
-                        <th style="color:#f7708e;">NAME</th>
-                        <th style="color:#f7708e;">DESCRIPTION</th>
-                        <th style="color:#f7708e;">PRICE</th>
-                        <th style="color:#f7708e;">ACTIONS</th>
-                    </tr>
-                    <?php while ($row = $result->fetch_assoc()): ?>
-                        <tr>
-                            <td><?php echo $row['name']; ?></td>
-                            <td><?php echo $row['description']; ?></td>
-                            <td><?php echo $row['price']; ?></td>
-                            <td>
-                                <a href="?edit_id=<?php echo $row['id']; ?>" style="color:#f7708e;" class="btn-edit">✏ Edit</a>
-                            </td>
-                        </tr>
-                    <?php endwhile; ?>
-                </table>
+        <center>
+            <h1 style="font-size: 1.8rem; letter-spacing: 4px;">
+                Welcome <span style="color: var(--primary-dark);"><?php echo $_SESSION["name"]; ?></span>
+            </h1>
+            <div style="width: 80px; height: 2px; background: var(--border-color); margin: var(--spacing-sm) auto var(--spacing-lg);"></div>
+        </center>
+
+        <?php if($message): ?>
+            <div class="message"><?php echo $message; ?></div>
+        <?php endif; ?>
+
+        <div class="admin-grid">
+            <!-- LEFT: Product List -->
+            <article>
+                <h3 style="color: var(--primary-dark);">📋 Select Product to Edit</h3>
+                <?php if ($result->num_rows > 0): ?>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?php echo $row['name']; ?></td>
+                                    <td>$<?php echo $row['price']; ?></td>
+                                    <td>
+                                        <a href="?edit_id=<?php echo $row['id']; ?>" style="color: var(--primary-dark);">
+                                            ✏️ Edit
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <p style="color: var(--text-secondary);">No products to edit. <a href="create.php" style="color: var(--primary-dark);">Add one first!</a></p>
+                <?php endif; ?>
+            </article>
+
+            <!-- RIGHT: Edit Form -->
+            <?php if ($editproducts): ?>
+                <article>
+                    <h3 style="color: var(--primary-dark);">
+                        ✏️ Editing: <?php echo $editproducts['name']; ?>
+                    </h3>
+                    <form method="POST">
+                        <input type="hidden" name="id" value="<?php echo $editproducts['id']; ?>">
+
+                        <label>Product Name:</label>
+                        <input type="text" name="name" value="<?php echo $editproducts['name']; ?>" required>
+
+                        <label>Description:</label>
+                        <input type="text" name="description" value="<?php echo $editproducts['description']; ?>" required>
+
+                        <label>Price ($):</label>
+                        <input type="number" name="price" value="<?php echo $editproducts['price']; ?>" required step="0.01">
+
+                        <button type="submit" name="order" style="width: 100%; margin-top: var(--spacing-md);">
+                            💾 Update Product
+                        </button>
+                    </form>
+                </article>
             <?php else: ?>
-                <p>No users to edit. <a href="create.php">Create one first!</a></p>
+                <article style="display: flex; justify-content: center; align-items: center; min-height: 200px;">
+                    <p style="color: var(--text-light); text-align: center; font-family: var(--font-heading); letter-spacing: 2px;">
+                        Select a product from the list to edit
+                    </p>
+                </article>
             <?php endif; ?>
         </div>
-
-        <!-- RIGHT: Edit form (shows when user selected) -->
-        <?php if ($editproducts): ?>
-            <div class="edit-form">
-                <h3>
-                    ✏
-                    Editing User #<?php echo $editproducts['id']; ?></h3>
-                <form method="POST">
-                    <input type="hidden" name="id" value="<?php echo $editproducts['id']; ?>">
-
-                    <label>Name:</label>
-                    <input type="text" name="name" value="<?php echo $editproducts['name']; ?>" required>
-
-                    <label>description:</label>
-                    <input type="text" name="description" value="<?php echo $editproducts['description']; ?>" required>
-
-                    <label>price:</label>
-                    <input type="number" name="price" value="<?php echo $editproducts['price']; ?>" required>
-
-                    <button type="submit" name="order">
-                        💾
-                        Update product</button>
-                </form>
-            </div>
-        <?php endif; ?>
     </div>
 
     <?php $conn->close(); ?>
-
+    <script src="admin-script.js"></script>
 </body>
 
 </html>

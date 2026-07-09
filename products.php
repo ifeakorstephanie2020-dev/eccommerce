@@ -2,22 +2,35 @@
 
 include "config.php";
 
+// Check if id is set
+if (!isset($_GET["id"])) {
+    header("Location: index.php");
+    exit();
+}
+
 $id = $_GET["id"];
 
 $sql = "SELECT * FROM products WHERE id=$id";
 $results = mysqli_query($conn, $sql);
 $row = mysqli_fetch_assoc($results);
 
+// Check if product exists
+if (!$row) {
+    header("Location: index.php");
+    exit();
+}
+
+$message = ""; // Declare message variable
+
 if(isset($_POST['order'])){
     $email = $_POST["email"];
     $sql = "INSERT INTO orders (email,id2) VALUES ('$email', '$id')";
 
     if ($conn->query($sql)===TRUE) {
-        $message = "Order added successfully";
+        $message = "✅ Order placed successfully!";
     } else{
-        $message = "error:" . $conn->error;
+        $message = "❌ Error: " . $conn->error;
     }
-
 }
 
 ?>
@@ -66,16 +79,21 @@ if(isset($_POST['order'])){
 
         <article style="flex: 1; min-width: 280px; max-width: 500px; height: fit-content;">
             <h2>Complete Order</h2>
+
+            <!-- Display message here -->
+            <?php if($message): ?>
+                <div class="message" style="margin-bottom: var(--spacing-md);"><?php echo $message; ?></div>
+            <?php endif; ?>
+
             <form method="post">
                 <label>Your Email Address</label>
-                <input type="email" name="email" placeholder="you@example.com" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <input type="email" name="email" placeholder="you@example.com" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);" required>
                 <small style="color: var(--text-light);">We'll send the product name to this email</small>
                 <br><br>
                 <center>
                     <button type="submit" name="order" style="width: 100%;">Place Order</button><br><br>
                     <a href="index.php" style="color: var(--text-secondary);">Back to store</a>
                 </center>
-                <?php if(isset($message)) echo "<p style='color: var(--primary-dark); text-align: center; margin-top: var(--spacing-md);'>$message</p>"; ?>
             </form>
         </article>
     </div>
