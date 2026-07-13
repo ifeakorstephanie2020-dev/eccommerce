@@ -1,5 +1,9 @@
 <?php
 include 'config.php';
+include 'security_functions.php';
+
+startSecureSession();
+sendSecurityHeaders();
 
 $sql = "SELECT * FROM products";
 $results = $conn->query($sql);

@@ -1,0 +1,25 @@
+# .htaccess - Apache Security Configuration
+
+# Protect sensitive files
+<FilesMatch "^(config\.php|security_functions\.php|database\.sql|\.htaccess)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Disable directory browsing
+Options -Indexes
+
+# Protect against XSS and other attacks
+<IfModule mod_headers.c>
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "DENY"
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Prevent SQL injection via URL
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{QUERY_STRING} [^a-zA-Z0-9_] [NC]
+    RewriteRule ^(.*)$ - [F,L]
+</IfModule>

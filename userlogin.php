@@ -1,59 +1,118 @@
 <?php
 include 'config.php';
+include 'security_functions.php';
+
+startSecureSession();
+sendSecurityHeaders();
+
 $message = "";
-session_start();
+$error = "";
+
+// CSRF Token
+$csrf_token = generateCSRFToken();
 
 // Sign up logic
 if (isset($_POST['sign'])) {
-    $username = $_POST['username'];
-    $cpassword = $_POST['PASSWORD'];
-    $password = $_POST['password'];
+    // Check rate limiting
+    if (!checkRateLimit('signup', 5, 3600)) { // 5 signups per hour
+        $error = "Too many signup attempts. Please try again later.";
+        logSuspiciousActivity("Rate limit exceeded for signup");
+    }
+    elseif (isBot()) {
+        $error = "Error processing your request.";
+        logSuspiciousActivity("Bot detected during signup");
+    }
+    else {
+        $username = sanitizeInput($_POST['username']);
+        $password = sanitizeInput($_POST['password']);
+        $cpassword = sanitizeInput($_POST['PASSWORD']);
+        $email = sanitizeInput($_POST['email'] ?? '');
 
-    if ($password === $cpassword) {
-        $sql = "INSERT INTO users (name, pass) VALUES ('$username', '$password')";
-
-        if ($conn->query($sql) === TRUE) {
-            $message = "✅ User added successfully! Please login.";
-        } else {
-            $message = "❌ Error: " . $conn->error;
+        // Validate username
+        if (strlen($username) < 3) {
+            $error = "Username must be at least 3 characters.";
         }
-    } else {
-        $message = "❌ Passwords do not match!";
+        // Validate password
+        elseif (strlen($password) < 8) {
+            $error = "Password must be at least 8 characters.";
+        }
+        elseif ($password !== $cpassword) {
+            $error = "Passwords do not match!";
+        }
+        elseif (!validateEmail($email)) {
+            $error = "Please enter a valid email address.";
+        }
+        else {
+            // Hash password
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+            // Use prepared statement
+            $stmt = $conn->prepare("INSERT INTO users (name, pass, email) VALUES (?, ?, ?)");
+            $stmt->bind_param("sss", $username, $hashed_password, $email);
+
+            if ($stmt->execute()) {
+                $message = "✅ User added successfully! Please login.";
+                // Regenerate CSRF token
+                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+            } else {
+                if ($conn->errno === 1062) { // Duplicate entry
+                    $error = "Username already exists. Please choose another.";
+                } else {
+                    $error = "❌ Error: " . $stmt->error;
+                }
+            }
+            $stmt->close();
+        }
     }
 }
 
-// Login logic - FIXED
+// Login logic
 if (isset($_POST["LOGIN"])) {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    // Check rate limiting
+    if (!checkRateLimit('login', 5, 300)) { // 5 login attempts per 5 minutes
+        $error = "Too many login attempts. Please wait.";
+        logSuspiciousActivity("Rate limit exceeded for login");
+    }
+    else {
+        $username = sanitizeInput($_POST['username']);
+        $password = sanitizeInput($_POST['password']);
 
-    // Check if user exists with matching credentials
-    $sql = "SELECT * FROM users WHERE name = '$username' AND pass = '$password'";
-    $result = $conn->query($sql);
+        // Use prepared statement
+        $stmt = $conn->prepare("SELECT id, name, pass FROM users WHERE name = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    // Check if any row was returned
-    if ($result->num_rows > 0) {
-        $_SESSION["name"] = $username;
-        $_SESSION["islogged"] = TRUE;
-        header("Location: index.php");
-        exit(); // Always call exit after header redirect
-    } else {
-        $message = "❌ Invalid username or password!";
+        if ($row = $result->fetch_assoc()) {
+            // Verify password
+            if (password_verify($password, $row['pass'])) {
+                $_SESSION["name"] = $row['name'];
+                $_SESSION["user_id"] = $row['id'];
+                $_SESSION["islogged"] = TRUE;
+                session_regenerate_id(true);
+                header("Location: index.php");
+                exit();
+            } else {
+                $error = "❌ Invalid username or password!";
+                logSuspiciousActivity("Failed login attempt for user: $username");
+            }
+        } else {
+            $error = "❌ Invalid username or password!";
+            logSuspiciousActivity("Failed login attempt for user: $username");
+        }
+        $stmt->close();
     }
 }
 
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STEPHIE'S STORE - Login</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <div class="container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
         <!-- SIGN UP FORM -->
@@ -65,18 +124,27 @@ if (isset($_POST["LOGIN"])) {
             <hr style="border: 1px solid var(--border-color); margin: var(--spacing-md) 0;">
 
             <?php if(isset($message) && isset($_POST['sign'])): ?>
-                <div class="message" style="margin-bottom: var(--spacing-md);"><?php echo $message; ?></div>
+                <div class="message" style="margin-bottom: var(--spacing-md); color: green;"><?php echo htmlspecialchars($message); ?></div>
+            <?php endif; ?>
+
+            <?php if(isset($error) && isset($_POST['sign'])): ?>
+                <div class="message" style="margin-bottom: var(--spacing-md); color: red;"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
 
             <form method="post">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+
                 <label>USERNAME</label>
-                <input type="text" name="username" placeholder="Enter username" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <input type="text" name="username" placeholder="Enter username (min 3 chars)" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);" required minlength="3">
+
+                <label>EMAIL</label>
+                <input type="email" name="email" placeholder="your@email.com" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);" required>
 
                 <label>PASSWORD</label>
-                <input type="password" name="password" placeholder="Enter password" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <input type="password" name="password" placeholder="Enter password (min 8 chars)" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);" required minlength="8">
 
                 <label>CONFIRM PASSWORD</label>
-                <input type="password" name="PASSWORD" placeholder="Confirm password" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <input type="password" name="PASSWORD" placeholder="Confirm password" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);" required>
 
                 <button name="sign" style="width: 100%;">Sign Up</button>
             </form>
@@ -90,16 +158,18 @@ if (isset($_POST["LOGIN"])) {
             </div>
             <hr style="border: 1px solid var(--border-color); margin: var(--spacing-md) 0;">
 
-            <?php if(isset($message) && isset($_POST['LOGIN'])): ?>
-                <div class="message" style="margin-bottom: var(--spacing-md);"><?php echo $message; ?></div>
+            <?php if(isset($error) && isset($_POST['LOGIN'])): ?>
+                <div class="message" style="margin-bottom: var(--spacing-md); color: red;"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
 
             <form method="post">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+
                 <label>USERNAME</label>
-                <input type="text" name="username" placeholder="Enter username" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <input type="text" name="username" placeholder="Enter username" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);" required>
 
                 <label>PASSWORD</label>
-                <input type="password" name="password" placeholder="Enter password" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);">
+                <input type="password" name="password" placeholder="Enter password" style="width: 100%; padding: var(--spacing-sm); border: 2px solid var(--border-color); background: var(--bg-card); font-family: var(--font-main);" required>
 
                 <button name="LOGIN" type="submit" style="width: 100%;">LOGIN</button>
             </form>
@@ -119,5 +189,4 @@ if (isset($_POST["LOGIN"])) {
     </script>
     <script src="script.js"></script>
 </body>
-
 </html>
