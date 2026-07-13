@@ -2,7 +2,7 @@
 CREATE DATABASE IF NOT EXISTS adaez;
 USE adaez;
 
--- Products table
+-- Products table (unchanged)
 CREATE TABLE IF NOT EXISTS products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -11,21 +11,28 @@ CREATE TABLE IF NOT EXISTS products (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Users table (for customer signup)
+-- Users table with password hashing
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    pass VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    pass VARCHAR(255) NOT NULL,  -- Store hashed passwords
+    email VARCHAR(255),          -- Added for order confirmation
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_username (name)
 );
 
--- Orders table
+-- Orders table with better structure
 CREATE TABLE IF NOT EXISTS orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL,
-    id2 INT NOT NULL,  -- This references product ID
+    product_id INT NOT NULL,
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id2) REFERENCES products(id) ON DELETE CASCADE
+    order_status VARCHAR(50) DEFAULT 'pending',
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    INDEX idx_email (email),
+    INDEX idx_product (product_id)
 );
 
 -- Insert sample products (optional)
@@ -34,6 +41,6 @@ INSERT INTO products (name, description, price) VALUES
 ('Product 2', 'Description for product 2', 29.99),
 ('Product 3', 'Description for product 3', 39.99);
 
--- Insert default admin user (optional - for admin login)
--- Note: In production, you should use hashed passwords!
-INSERT INTO users (name, pass) VALUES ('admin', 'admin123');
+-- Insert default admin with hashed password (password: admin123)
+-- Use PHP's password_hash() to generate this
+INSERT INTO users (name, pass, email) VALUES ('admin', '$2y$10$YourHashedPasswordHere', 'admin@example.com');
